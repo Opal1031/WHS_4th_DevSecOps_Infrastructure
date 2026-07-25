@@ -117,3 +117,4 @@ resource "aws_ebs_volume" "attachments" {
   encrypted         = true # 수정: EBS 저장 데이터 암호화
   kms_key_id        = aws_kms_key.infrastructure.arn
 }
+
