@@ -1,0 +1,16 @@
+# ============================================================
+#  pre-commit — 커밋하기 전에 자동으로 IaC 스캔을 돌립니다.
+#  설치:  pip install pre-commit  &&  pre-commit install
+#  이제 git commit 할 때마다 아래 훅이 자동 실행됩니다.
+# ============================================================
+repos:
+  - repo: https://github.com/aquasecurity/tfsec
+    rev: v1.28.14
+    hooks:
+      - id: tfsec
+
+  - repo: https://github.com/bridgecrewio/checkov
+    rev: 3.3.8
+    hooks:
+      - id: checkov
+        args: ["-d", "."]

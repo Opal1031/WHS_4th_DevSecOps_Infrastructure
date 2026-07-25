@@ -1,0 +1,44 @@
+# ============================================================
+#  실습 2 · 고친 Kubernetes 워크로드 (정답 예시)
+#  "최소 권한(least privilege)" 원칙으로 하나씩 조였습니다.
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      automountServiceAccountToken: false     # ✅ 불필요한 API 토큰 자동 주입 차단
+      containers:
+        - name: web
+          image: nginx:1.27.3        # ✅ 버전을 고정 (재현 가능 + 취약점 추적 가능)
+          ports:
+            - containerPort: 8080
+          securityContext:
+            privileged: false                 # ✅ 특권 제거
+            runAsNonRoot: true                # ✅ root 금지
+            runAsUser: 101                    # ✅ 일반 사용자로 실행
+            allowPrivilegeEscalation: false   # ✅ 권한 상승 차단
+            readOnlyRootFilesystem: true      # ✅ 루트 파일시스템 읽기 전용
+            seccompProfile:
+              type: RuntimeDefault            # ✅ 커널 시스템콜 필터(seccomp) 적용
+            capabilities:
+              drop: ["ALL"]                   # ✅ 리눅스 커널 권한 전부 제거
+          resources:                          # ✅ 자원 상한/요청 지정
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+      # ✅ hostPath 볼륨 제거 — 호스트 파일시스템을 건드리지 않음

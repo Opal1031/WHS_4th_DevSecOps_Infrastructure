@@ -1,0 +1,30 @@
+name: CI/CD Canary Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "lab/canary_test/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: canary-production
+  cancel-in-progress: false
+
+jobs:
+  canary-deploy:
+    runs-on: self-hosted
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Deploy canary
+        working-directory: lab/canary_test
+        run: bash ./deploy.sh

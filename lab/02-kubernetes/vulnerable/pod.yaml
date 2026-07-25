@@ -1,0 +1,35 @@
+# ============================================================
+#  실습 2 · 취약한 Kubernetes 워크로드 (일부러 잘못 짠 설정)
+#  목표: 컨테이너에게 "너무 많은 권한"을 준 곳을 찾아보세요.
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    app: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: nginx:latest        # 👀 latest 태그 — 어떤 버전인지 알 수 없음
+          ports:
+            - containerPort: 80
+          securityContext:
+            privileged: true         # 👀 호스트 커널 수준 권한 (사실상 root)
+            runAsUser: 0             # 👀 컨테이너를 root(0)로 실행
+            allowPrivilegeEscalation: true  # 👀 권한 상승 허용
+          # 👀 resources(limits) 없음 — 한 파드가 노드 자원을 다 먹을 수 있음
+      volumes:
+        - name: host-root
+          hostPath:
+            path: /                  # 👀 호스트 파일시스템 전체를 마운트
+      # (컨테이너에 host-root 를 마운트하면 노드 전체가 뚫립니다)
